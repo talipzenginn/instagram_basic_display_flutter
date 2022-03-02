@@ -41,6 +41,7 @@ class ProfileView extends StatelessWidget {
             ),
           ),
           Container(
+            margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(
                 4,

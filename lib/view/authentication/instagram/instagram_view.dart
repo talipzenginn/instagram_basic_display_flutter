@@ -1,33 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/utils/constants.dart';
 import '../../../view/authentication/instagram/instagram_model.dart';
 import '../../../view/authentication/instagram/instagram_viewmodel.dart';
 
-class InstagramView extends StatelessWidget {
+class InstagramView extends StatefulWidget {
   const InstagramView({Key? key}) : super(key: key);
+
+  @override
+  State<InstagramView> createState() => _InstagramViewState();
+}
+
+class _InstagramViewState extends State<InstagramView> {
+  final InstagramViewmodel instagramViewmodel = InstagramViewmodel(
+    instagramModel: InstagramModel(),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Builder(builder: (context) {
-      final webview = FlutterWebviewPlugin();
-      final InstagramViewmodel instagramViewmodel = InstagramViewmodel(
-        instagramModel: InstagramModel(),
-      );
-
-      instagramViewmodel.buildRedirectToHome(
-        webview,
-      );
-
-      return WebviewScaffold(
-        url: AppConstant().authUrl,
-        resizeToAvoidBottomInset: true,
-        appBar: buildAppBar(context),
-      );
+      return webview;
     });
   }
 
-  AppBar buildAppBar(BuildContext context) => AppBar(
+  Scaffold get webview => Scaffold(
+        appBar: appBar,
+        body: WebView(
+          javascriptMode: JavascriptMode.unrestricted,
+          initialUrl: AppConstant().authUrl,
+          onWebViewCreated: instagramViewmodel.onWebViewCreated,
+          navigationDelegate: instagramViewmodel.navigationDelegate,
+        ),
+      );
+
+  AppBar get appBar => AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),

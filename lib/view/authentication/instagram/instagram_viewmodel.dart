@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
-import 'package:ig_basic_display/core/utils/secret_constants.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import '../../../core/utils/secret_constants.dart';
 import '../../../core/utils/routes.gr.dart';
 import '../../../main.dart';
 import '../../../view/profile/profile_viewmodel.dart';
@@ -14,40 +15,38 @@ class InstagramViewmodel extends ChangeNotifier {
 
   final InstagramModel instagramModel;
 
-  Future<void> buildRedirectToHome(
-    FlutterWebviewPlugin webview,
-  ) async {
-    webview.onUrlChanged.listen(
-      (String url) async {
-        if (url.contains(AppConstant.redirectUri)) {
-          getAuthorizationCode(url);
-          await getTokenAndUserID().then(
-            (isDone) async {
-              if (isDone) {
-                ProfileViewmodel(instagramModel).getUserProfile().then(
-                  (mediaUrlList) async {
-                    await webview.close();
-                    print('${instagramModel.username} logged in!');
-                    router.pop();
-                    router.push(
-                      ProfileRoute(
-                        mediaUrlList: mediaUrlList,
-                      ),
-                    );
-                  },
+  Completer<WebViewController> controller = Completer<WebViewController>();
+
+  void buildRedirectToHome(NavigationRequest navigation) async {
+    final host = Uri.parse(navigation.url).toString();
+
+    if (host.contains(Uri.parse(AppConstant.redirectUri).host)) {
+      print(host);
+      getAuthorizationCode(host);
+      await getTokenAndUserID().then(
+        (isDone) async {
+          if (isDone) {
+            ProfileViewmodel(instagramModel).getUserProfile().then(
+              (mediaUrlList) {
+                router.push(
+                  ProfileRoute(
+                    mediaUrlList: mediaUrlList,
+                  ),
                 );
-              }
-            },
-          );
-        }
-      },
-    );
+                print('${instagramModel.username} logged in!');
+              },
+            );
+          }
+        },
+      );
+    }
   }
 
   void getAuthorizationCode(String url) {
     instagramModel.authorizationCode = url
         .replaceAll('${AppConstant.redirectUri}?code=', '')
         .replaceAll('#_', '');
+    print("Replaced state" + instagramModel.authorizationCode.toString());
   }
 
   Future<bool> getTokenAndUserID() async {
@@ -66,5 +65,14 @@ class InstagramViewmodel extends ChangeNotifier {
     return (instagramModel.accessToken != null && instagramModel.userID != null)
         ? true
         : false;
+  }
+
+  void onWebViewCreated(WebViewController c) {
+    controller.complete(c);
+  }
+
+  NavigationDecision navigationDelegate(NavigationRequest navigation) {
+    buildRedirectToHome(navigation);
+    return NavigationDecision.navigate;
   }
 }
