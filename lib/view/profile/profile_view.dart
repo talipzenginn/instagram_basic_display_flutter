@@ -6,21 +6,20 @@ class ProfileView extends StatelessWidget {
 
   final List<String>? mediaUrlList;
 
-  List<Widget> setWidgets(BuildContext context) {
-    List<Widget> widgets = [];
-    List<String>? urlList = mediaUrlList;
-    for (int i = 0; i < urlList!.length; i++) {
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.all(1),
-          child: Image.network(
-            urlList[i],
+  Widget buildGridView() {
+    List<Widget> widgets = mediaUrlList!
+        .map(
+          (e) => Padding(
+            padding: const EdgeInsets.all(1),
+            child: Image.network(e),
           ),
-        ),
-      );
-    }
-
-    return widgets;
+        )
+        .toList();
+    return GridView.count(
+      shrinkWrap: true,
+      crossAxisCount: 3,
+      children: widgets,
+    );
   }
 
   @override
@@ -33,13 +32,7 @@ class ProfileView extends StatelessWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: GridView.count(
-              shrinkWrap: true,
-              crossAxisCount: 3,
-              children: setWidgets(context),
-            ),
-          ),
+              padding: const EdgeInsets.only(top: 2), child: buildGridView()),
           Container(
             margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
